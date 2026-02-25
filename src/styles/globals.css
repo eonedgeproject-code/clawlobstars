@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #1e2436 transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: #1e2436;
+    border-radius: 3px;
+  }
+
+  ::selection {
+    background: #ff2d5540;
+    color: #fff;
+  }
+
+  body {
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    color: #e2e8f4;
+    background: #0a0a0f;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-claw-card/60 backdrop-blur-xl border border-claw-border rounded-2xl;
+  }
+
+  .glow-red {
+    box-shadow: 0 0 20px #ff2d5520, 0 0 60px #ff2d5510;
+  }
+
+  .glow-cyan {
+    box-shadow: 0 0 20px #00e5ff20, 0 0 60px #00e5ff10;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-claw-red via-claw-orange to-claw-amber;
+  }
+
+  .btn-primary {
+    @apply px-6 py-3 bg-claw-red hover:bg-claw-red/80 text-white font-semibold rounded-xl 
+           transition-all duration-200 active:scale-95 glow-red;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 bg-claw-surface hover:bg-claw-card border border-claw-border 
+           text-claw-light font-medium rounded-xl transition-all duration-200 active:scale-95;
+  }
+
+  .noise-overlay {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  }
+}

@@ -1,0 +1,178 @@
+# ============================================================
+# ClawLobstars AI Agent Framework
+# Makefile — v0.2.0
+# ============================================================
+
+CC       ?= gcc
+CFLAGS   := -Wall -Wextra -Wpedantic -std=c99 -D_POSIX_C_SOURCE=199309L -Isrc/include
+LDFLAGS  := -lrt -lpthread -lm
+
+# Optimization
+OPT      ?= O2
+CFLAGS   += -$(OPT)
+
+# Debug build
+ifdef DEBUG
+CFLAGS   += -g -DCLS_DEBUG
+endif
+
+# Directories
+SRC_DIR  := src
+BUILD_DIR := build
+BIN_DIR  := $(BUILD_DIR)/bin
+OBJ_DIR  := $(BUILD_DIR)/obj
+
+# Core source files (13 modules)
+SRCS     := $(SRC_DIR)/core/cls_agent.c \
+            $(SRC_DIR)/memory/cls_memory.c \
+            $(SRC_DIR)/perception/cls_perception.c \
+            $(SRC_DIR)/cognitive/cls_cognitive.c \
+            $(SRC_DIR)/planning/cls_planning.c \
+            $(SRC_DIR)/action/cls_action.c \
+            $(SRC_DIR)/knowledge/cls_knowledge.c \
+            $(SRC_DIR)/comm/cls_comm.c \
+            $(SRC_DIR)/multiagent/cls_multiagent.c \
+            $(SRC_DIR)/security/cls_security.c \
+            $(SRC_DIR)/training/cls_training.c \
+            $(SRC_DIR)/resource/cls_resource.c
+
+OBJS     := $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+DEPS     := $(OBJS:.o=.d)
+
+# Solana module (feature branch)
+SOLANA_SRC := $(SRC_DIR)/solana/cls_solana.c
+SOLANA_OBJ := $(OBJ_DIR)/solana/cls_solana.o
+
+# Token module (feature branch)
+TOKEN_SRC := $(SRC_DIR)/token/cls_token.c
+TOKEN_OBJ := $(OBJ_DIR)/token/cls_token.o
+
+# Library output
+LIB_NAME := libclawlobstars
+STATIC_LIB := $(BUILD_DIR)/$(LIB_NAME).a
+
+# Binaries
+EXAMPLE_BIN  := $(BIN_DIR)/cls_example
+TEST_BIN     := $(BIN_DIR)/cls_test
+BENCH_BIN    := $(BIN_DIR)/cls_bench
+SOLANA_BIN   := $(BIN_DIR)/cls_solana_agent
+TOKEN_BIN    := $(BIN_DIR)/cls_token_demo
+
+# ============================================================
+# Targets
+# ============================================================
+
+.PHONY: all build clean lib example test bench solana token help
+
+all: build
+
+build: lib example
+	@echo ""
+	@echo "  ╔═══════════════════════════════════════════╗"
+	@echo "  ║  CLAWLOBSTARS v0.2.0 — Build Complete    ║"
+	@echo "  ║  Library: $(STATIC_LIB)"
+	@echo "  ║  Example: $(EXAMPLE_BIN)"
+	@echo "  ╚═══════════════════════════════════════════╝"
+	@echo ""
+
+# --- Core library ---
+lib: $(STATIC_LIB)
+	@echo "[LIB] $(STATIC_LIB)"
+
+$(STATIC_LIB): $(OBJS)
+	@mkdir -p $(BUILD_DIR)
+	ar rcs $@ $^
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
+
+# --- Example ---
+example: $(EXAMPLE_BIN)
+	@echo "[BIN] $(EXAMPLE_BIN)"
+
+$(EXAMPLE_BIN): examples/main.c $(STATIC_LIB)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) -lclawlobstars $(LDFLAGS) -o $@
+
+# --- Tests (91 unit tests) ---
+test: $(TEST_BIN)
+	@echo ""
+	@echo "  ▸ Running 91 unit tests..."
+	@echo ""
+	@./$(TEST_BIN)
+
+$(TEST_BIN): tests/test_all.c $(STATIC_LIB)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) -lclawlobstars $(LDFLAGS) -o $@
+
+# --- Benchmarks ---
+bench: $(BENCH_BIN)
+	@echo ""
+	@echo "  ▸ Running benchmarks..."
+	@echo ""
+	@./$(BENCH_BIN)
+
+$(BENCH_BIN): bench/benchmark.c $(STATIC_LIB)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) -lclawlobstars $(LDFLAGS) -o $@
+
+# --- Solana agent (feature branch) ---
+solana: $(SOLANA_BIN)
+	@echo "[BIN] $(SOLANA_BIN)"
+
+$(SOLANA_BIN): examples/solana_agent.c $(SOLANA_OBJ) $(STATIC_LIB)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) $< $(SOLANA_OBJ) -L$(BUILD_DIR) -lclawlobstars $(LDFLAGS) -o $@
+
+$(SOLANA_OBJ): $(SOLANA_SRC)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
+
+# --- Token demo (feature branch) ---
+token: $(TOKEN_BIN)
+	@echo "[BIN] $(TOKEN_BIN)"
+
+$(TOKEN_BIN): examples/token_demo.c $(TOKEN_OBJ) $(STATIC_LIB)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) $< $(TOKEN_OBJ) -L$(BUILD_DIR) -lclawlobstars $(LDFLAGS) -o $@
+
+$(TOKEN_OBJ): $(TOKEN_SRC)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
+
+# --- Clean ---
+clean:
+	rm -rf $(BUILD_DIR)
+	@echo "[CLEAN] Build artifacts removed"
+
+# --- Help ---
+help:
+	@echo ""
+	@echo "  ClawLobstars Build System v0.2.0"
+	@echo "  ================================="
+	@echo ""
+	@echo "  make build       Build library + example (default)"
+	@echo "  make lib         Build static library only"
+	@echo "  make example     Build example binary"
+	@echo "  make test        Build & run 91 unit tests"
+	@echo "  make bench       Build & run benchmarks"
+	@echo "  make solana      Build Solana agent demo"
+	@echo "  make token       Build token economics demo"
+	@echo "  make clean       Remove build artifacts"
+	@echo ""
+	@echo "  Options:"
+	@echo "  make DEBUG=1     Build with debug symbols"
+	@echo "  make OPT=O3      Build with O3 optimization"
+	@echo ""
+
+# --- Cross-compilation ---
+.PHONY: arm riscv
+
+arm:
+	$(MAKE) CC=arm-none-eabi-gcc TARGET=arm-cortex-m4
+
+riscv:
+	$(MAKE) CC=riscv32-unknown-elf-gcc TARGET=riscv32
+
+-include $(DEPS)
