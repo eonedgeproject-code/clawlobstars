@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLAWLOBSTARS — Command Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Black+Ops+One&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-primary: #060806;
+  --bg-secondary: #0c120c;
+  --bg-card: #0a100a;
+  --bg-card-hover: #0e150e;
+  --olive: #3d5a1e;
+  --olive-bright: #5a8a2a;
+  --tactical-green: #2d6e2d;
+  --nv-green: #00ff41;
+  --nv-green-dim: #00cc33;
+  --nv-green-glow: rgba(0, 255, 65, 0.15);
+  --amber: #c4a000;
+  --amber-bright: #ffd700;
+  --red-alert: #ff2a2a;
+  --blue-info: #2a8fff;
+  --text-primary: #c8d4c0;
+  --text-secondary: #7a8a6e;
+  --text-dim: #3e4a35;
+  --border: #1a2a14;
+  --border-active: #2d5a1e;
+  --scanline: rgba(0, 255, 65, 0.03);
+}
+
+html { font-size: 14px; }
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  background-image: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    var(--scanline) 2px, var(--scanline) 4px
+  );
+}
+
+/* ===== TOP BAR ===== */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1.5rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.topbar-logo {
+  font-family: 'Black Ops One', cursive;
+  font-size: 1.1rem;
+  color: var(--nv-green);
+  text-shadow: 0 0 10px var(--nv-green-glow);
+  letter-spacing: 2px;
+}
+
+.topbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-active);
+}
+
+.topbar-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+
+.topbar-status {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--nv-green);
+  box-shadow: 0 0 6px var(--nv-green);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.status-dot.warn { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+.status-dot.error { background: var(--red-alert); box-shadow: 0 0 6px var(--red-alert); }
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.topbar-time {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--nv-green-dim);
+}
+
+/* ===== LAYOUT ===== */
+.dashboard {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: calc(100vh - 42px);
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  padding: 1rem 0;
+}
+
+.sidebar-section {
+  margin-bottom: 1.5rem;
+}
+
+.sidebar-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  padding: 0 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 2px solid transparent;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.nav-item:hover {
+  background: var(--nv-green-glow);
+  color: var(--text-primary);
+}
+
+.nav-item.active {
+  border-left-color: var(--nv-green);
+  background: var(--nv-green-glow);
+  color: var(--nv-green);
+}
+
+.nav-icon {
+  font-size: 1rem;
+  width: 20px;
+  text-align: center;
+}
+
+.nav-badge {
+  margin-left: auto;
+  background: var(--olive);
+  color: var(--nv-green);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  padding: 1px 6px;
+  border-radius: 2px;
+}
+
+/* ===== MAIN CONTENT ===== */
+.main {
+  padding: 1.2rem;
+  overflow-y: auto;
+}
+
+/* ===== STATS ROW ===== */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 1rem 1.2rem;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+
+.stat-card:hover {
+  border-color: var(--border-active);
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--olive);
+}
+
+.stat-card.green::before { background: var(--nv-green); }
+.stat-card.amber::before { background: var(--amber); }
+.stat-card.red::before { background: var(--red-alert); }
+.stat-card.blue::before { background: var(--blue-info); }
+
+.stat-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 0.4rem;
+}
+
+.stat-value {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--nv-green);
+  line-height: 1;
+}
+
+.stat-card.amber .stat-value { color: var(--amber-bright); }
+.stat-card.red .stat-value { color: var(--red-alert); }
+.stat-card.blue .stat-value { color: var(--blue-info); }
+
+.stat-change {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  margin-top: 0.3rem;
+  color: var(--nv-green-dim);
+}
+
+.stat-change.down { color: var(--red-alert); }
+
+/* ===== GRID PANELS ===== */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+
+.panel-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.panel-action {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--olive-bright);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: color 0.2s;
+}
+
+.panel-action:hover { color: var(--nv-green); }
+
+.panel-body {
+  padding: 1rem;
+}
+
+/* ===== AGENT LIST ===== */
+.agent-row {
+  display: grid;
+  grid-template-columns: 30px 1.5fr 1fr 1fr 1fr 80px;
+  align-items: center;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.75rem;
+}
+
+.agent-row:last-child { border-bottom: none; }
+
+.agent-row.header {
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.6rem;
+  padding-bottom: 0.8rem;
+}
+
+.agent-id {
+  color: var(--text-dim);
+}
+
+.agent-name {
+  color: var(--text-primary);
+}
+
+.agent-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.agent-status .dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.dot.online { background: var(--nv-green); box-shadow: 0 0 4px var(--nv-green); }
+.dot.idle { background: var(--amber); box-shadow: 0 0 4px var(--amber); }
+.dot.offline { background: var(--red-alert); }
+
+.agent-cpu, .agent-mem {
+  color: var(--text-secondary);
+}
+
+.agent-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-sm {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  padding: 2px 8px;
+  border: 1px solid var(--border-active);
+  background: transparent;
+  color: var(--olive-bright);
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+
+.btn-sm:hover {
+  background: var(--nv-green-glow);
+  color: var(--nv-green);
+  border-color: var(--nv-green);
+}
+
+.btn-sm.danger { border-color: #5a1a1a; color: #cc4444; }
+.btn-sm.danger:hover { background: rgba(255, 42, 42, 0.1); color: var(--red-alert); border-color: var(--red-alert); }
+
+/* ===== STAKING TABLE ===== */
+.stake-tier {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.tier-card {
+  border: 1px solid var(--border);
+  padding: 0.8rem;
+  text-align: center;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.tier-card:hover {
+  border-color: var(--border-active);
+  background: var(--bg-card-hover);
+}
+
+.tier-card.active-tier {
+  border-color: var(--nv-green);
+  box-shadow: 0 0 15px var(--nv-green-glow);
+}
+
+.tier-card.active-tier::after {
+  content: 'ACTIVE';
+  position: absolute;
+  top: -8px;
+  right: 8px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.5rem;
+  background: var(--nv-green);
+  color: var(--bg-primary);
+  padding: 1px 6px;
+  letter-spacing: 1px;
+}
+
+.tier-name {
+  font-family: 'Black Ops One', cursive;
+  font-size: 0.85rem;
+  color: var(--amber-bright);
+  margin-bottom: 0.4rem;
+}
+
+.tier-req {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.3rem;
+}
+
+.tier-apy {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1.3rem;
+  color: var(--nv-green);
+  font-weight: 700;
+}
+
+.tier-slots {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  margin-top: 0.3rem;
+}
+
+/* ===== ACTIVITY FEED ===== */
+.feed-item {
+  display: flex;
+  gap: 0.7rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+}
+
+.feed-item:last-child { border-bottom: none; }
+
+.feed-time {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  min-width: 55px;
+  flex-shrink: 0;
+}
+
+.feed-icon {
+  font-size: 0.8rem;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.feed-text {
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.feed-text strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.feed-text .highlight { color: var(--nv-green); }
+.feed-text .warn { color: var(--amber); }
+.feed-text .error { color: var(--red-alert); }
+
+/* ===== CHART AREA ===== */
+.chart-container {
+  height: 180px;
+  position: relative;
+  padding: 0.5rem 0;
+}
+
+.chart-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.chart-grid line {
+  stroke: var(--border);
+  stroke-width: 0.5;
+}
+
+.chart-line {
+  fill: none;
+  stroke: var(--nv-green);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 3px var(--nv-green-glow));
+}
+
+.chart-area {
+  fill: url(#greenGradient);
+  opacity: 0.3;
+}
+
+.chart-line.amber { stroke: var(--amber); filter: drop-shadow(0 0 3px rgba(196, 160, 0, 0.3)); }
+.chart-area.amber { fill: url(#amberGradient); }
+
+.chart-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  fill: var(--text-dim);
+}
+
+.chart-legend {
+  display: flex;
+  gap: 1.2rem;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--text-secondary);
+}
+
+.legend-color {
+  width: 12px;
+  height: 2px;
+}
+
+.legend-color.green { background: var(--nv-green); }
+.legend-color.amber { background: var(--amber); }
+
+/* ===== RESOURCE BARS ===== */
+.resource-item {
+  margin-bottom: 1rem;
+}
+
+.resource-item:last-child { margin-bottom: 0; }
+
+.resource-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.3rem;
+}
+
+.resource-name {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.resource-val {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text-primary);
+}
+
+.resource-bar {
+  height: 4px;
+  background: var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.resource-fill {
+  height: 100%;
+  background: var(--nv-green);
+  transition: width 1s ease;
+  box-shadow: 0 0 6px var(--nv-green-glow);
+}
+
+.resource-fill.warn { background: var(--amber); box-shadow: 0 0 6px rgba(196, 160, 0, 0.3); }
+.resource-fill.danger { background: var(--red-alert); box-shadow: 0 0 6px rgba(255, 42, 42, 0.3); }
+
+/* ===== GOVERNANCE ===== */
+.proposal-item {
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.proposal-item:last-child { border-bottom: none; }
+
+.proposal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.proposal-id {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+}
+
+.proposal-status {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem;
+  padding: 1px 8px;
+  border-radius: 1px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.proposal-status.active { background: var(--nv-green-glow); color: var(--nv-green); border: 1px solid var(--olive); }
+.proposal-status.passed { background: rgba(42, 143, 255, 0.1); color: var(--blue-info); border: 1px solid #1a3a5a; }
+.proposal-status.rejected { background: rgba(255, 42, 42, 0.1); color: var(--red-alert); border: 1px solid #3a1a1a; }
+
+.proposal-title {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  margin-bottom: 0.3rem;
+}
+
+.proposal-votes {
+  display: flex;
+  gap: 1rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+}
+
+.vote-bar {
+  height: 3px;
+  background: var(--border);
+  margin-top: 0.3rem;
+  display: flex;
+  overflow: hidden;
+}
+
+.vote-for {
+  height: 100%;
+  background: var(--nv-green);
+}
+
+.vote-against {
+  height: 100%;
+  background: var(--red-alert);
+}
+
+/* ===== TERMINAL ===== */
+.terminal {
+  background: #050705;
+  border: 1px solid var(--border);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  padding: 0.7rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.term-line {
+  padding: 1px 0;
+  color: var(--text-dim);
+}
+
+.term-line .t { color: var(--text-dim); margin-right: 0.5rem; }
+.term-line .info { color: var(--nv-green-dim); }
+.term-line .warn { color: var(--amber); }
+.term-line .err { color: var(--red-alert); }
+.term-line .sys { color: var(--blue-info); }
+
+/* ===== WALLET ===== */
+.wallet-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.wallet-field {
+  margin-bottom: 0.6rem;
+}
+
+.wallet-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.2rem;
+}
+
+.wallet-value {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.wallet-value.big {
+  font-size: 1.4rem;
+  color: var(--nv-green);
+}
+
+/* ===== TOKEN HOLDINGS ===== */
+.token-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.75rem;
+}
+
+.token-row:last-child { border-bottom: none; }
+.token-row.header { color: var(--text-dim); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; }
+
+.token-name { color: var(--text-primary); }
+.token-amount { color: var(--text-secondary); text-align: right; }
+.token-usd { color: var(--amber); text-align: right; }
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border-active); }
+::-webkit-scrollbar-thumb:hover { background: var(--olive-bright); }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .stake-tier { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 900px) {
+  .dashboard { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.stat-card { animation: fadeIn 0.4s ease forwards; }
+.stat-card:nth-child(2) { animation-delay: 0.05s; }
+.stat-card:nth-child(3) { animation-delay: 0.1s; }
+.stat-card:nth-child(4) { animation-delay: 0.15s; }
+
+.panel { animation: fadeIn 0.5s ease forwards; animation-delay: 0.2s; opacity: 0; }
+.grid-2 .panel:nth-child(2) { animation-delay: 0.25s; }
+.grid-3 .panel:nth-child(2) { animation-delay: 0.3s; }
+
+/* Hidden sections */
+.section { display: none; }
+.section.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">🦞 CLAWLOBSTARS</div>
+    <div class="topbar-divider"></div>
+    <div class="topbar-title">Command Dashboard</div>
+  </div>
+  <div class="topbar-status">
+    <div class="status-item">
+      <div class="status-dot"></div>
+      <span>MAINNET</span>
+    </div>
+    <div class="status-item">
+      <div class="status-dot"></div>
+      <span>RPC OK</span>
+    </div>
+    <div class="status-item">
+      <div class="status-dot warn"></div>
+      <span>3 AGENTS</span>
+    </div>
+    <div class="topbar-time" id="clock">00:00:00 UTC</div>
+  </div>
+</div>
+
+<!-- DASHBOARD LAYOUT -->
+<div class="dashboard">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Operations</div>
+      <div class="nav-item active" onclick="showSection('overview')">
+        <span class="nav-icon">◈</span> Overview
+      </div>
+      <div class="nav-item" onclick="showSection('agents')">
+        <span class="nav-icon">⬡</span> Agents
+        <span class="nav-badge">3</span>
+      </div>
+      <div class="nav-item" onclick="showSection('staking')">
+        <span class="nav-icon">◆</span> Staking
+      </div>
+      <div class="nav-item" onclick="showSection('governance')">
+        <span class="nav-icon">⬢</span> Governance
+        <span class="nav-badge">2</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Finance</div>
+      <div class="nav-item" onclick="showSection('wallet')">
+        <span class="nav-icon">◇</span> Wallet
+      </div>
+      <div class="nav-item" onclick="showSection('revenue')">
+        <span class="nav-icon">△</span> Revenue
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">System</div>
+      <div class="nav-item" onclick="showSection('resources')">
+        <span class="nav-icon">▣</span> Resources
+      </div>
+      <div class="nav-item" onclick="showSection('logs')">
+        <span class="nav-icon">▤</span> Logs
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- ===== OVERVIEW ===== -->
+    <div class="section active" id="sec-overview">
+      <div class="stats-row">
+        <div class="stat-card green">
+          <div class="stat-label">Active Agents</div>
+          <div class="stat-value" id="stat-agents">3</div>
+          <div class="stat-change">▲ +1 last 24h</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-label">$CLAW Staked</div>
+          <div class="stat-value" id="stat-staked">847.2K</div>
+          <div class="stat-change">▲ +12.4K today</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">Inferences/sec</div>
+          <div class="stat-value" id="stat-infer">9.6M</div>
+          <div class="stat-change">▲ stable</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Revenue (epoch)</div>
+          <div class="stat-value" id="stat-rev">2,847</div>
+          <div class="stat-change">▲ +340 CLAW</div>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Performance — 24h</span>
+            <span class="panel-action">Export</span>
+          </div>
+          <div class="panel-body">
+            <div class="chart-container">
+              <svg class="chart-svg" viewBox="0 0 500 160" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#00ff41" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="#00ff41" stop-opacity="0"/>
+                  </linearGradient>
+                  <linearGradient id="amberGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#c4a000" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="#c4a000" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <!-- Grid -->
+                <g class="chart-grid">
+                  <line x1="0" y1="40" x2="500" y2="40"/>
+                  <line x1="0" y1="80" x2="500" y2="80"/>
+                  <line x1="0" y1="120" x2="500" y2="120"/>
+                </g>
+                <!-- CPU Line -->
+                <path class="chart-area" d="M0,130 L20,125 L50,110 L80,115 L110,90 L140,85 L170,95 L200,70 L230,65 L260,75 L290,60 L320,55 L350,65 L380,50 L410,45 L440,55 L470,40 L500,35 L500,160 L0,160 Z"/>
+                <path class="chart-line" d="M0,130 L20,125 L50,110 L80,115 L110,90 L140,85 L170,95 L200,70 L230,65 L260,75 L290,60 L320,55 L350,65 L380,50 L410,45 L440,55 L470,40 L500,35"/>
+                <!-- Memory Line -->
+                <path class="chart-area amber" d="M0,100 L20,98 L50,95 L80,97 L110,92 L140,90 L170,93 L200,88 L230,86 L260,89 L290,84 L320,82 L350,85 L380,80 L410,78 L440,82 L470,76 L500,74 L500,160 L0,160 Z"/>
+                <path class="chart-line amber" d="M0,100 L20,98 L50,95 L80,97 L110,92 L140,90 L170,93 L200,88 L230,86 L260,89 L290,84 L320,82 L350,85 L380,80 L410,78 L440,82 L470,76 L500,74"/>
+                <!-- Labels -->
+                <text class="chart-label" x="0" y="155">00:00</text>
+                <text class="chart-label" x="120" y="155">06:00</text>
+                <text class="chart-label" x="245" y="155">12:00</text>
+                <text class="chart-label" x="370" y="155">18:00</text>
+                <text class="chart-label" x="475" y="155">NOW</text>
+              </svg>
+            </div>
+            <div class="chart-legend">
+              <div class="legend-item"><div class="legend-color green"></div> Throughput</div>
+              <div class="legend-item"><div class="legend-color amber"></div> Memory</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Activity Feed</span>
+            <span class="panel-action">View All</span>
+          </div>
+          <div class="panel-body">
+            <div class="feed-item">
+              <span class="feed-time">2m ago</span>
+              <span class="feed-icon">⚡</span>
+              <span class="feed-text"><strong>tactical-01</strong> completed <span class="highlight">swap 0.5 SOL → BONK</span></span>
+            </div>
+            <div class="feed-item">
+              <span class="feed-time">8m ago</span>
+              <span class="feed-icon">◈</span>
+              <span class="feed-text"><strong>recon-03</strong> detected <span class="warn">price anomaly</span> on SOL/USDC</span>
+            </div>
+            <div class="feed-item">
+              <span class="feed-time">15m ago</span>
+              <span class="feed-icon">▲</span>
+              <span class="feed-text"><span class="highlight">+340 CLAW</span> distributed to stakers</span>
+            </div>
+            <div class="feed-item">
+              <span class="feed-time">22m ago</span>
+              <span class="feed-icon">⬡</span>
+              <span class="feed-text"><strong>sniper-02</strong> inference rate: <span class="highlight">2.9M ops/s</span></span>
+            </div>
+            <div class="feed-item">
+              <span class="feed-time">41m ago</span>
+              <span class="feed-icon">⚠</span>
+              <span class="feed-text"><strong>recon-03</strong> <span class="warn">memory usage 78%</span> — auto-prune triggered</span>
+            </div>
+            <div class="feed-item">
+              <span class="feed-time">1h ago</span>
+              <span class="feed-icon">✓</span>
+              <span class="feed-text">Governance proposal <span class="highlight">#007</span> passed — quorum reached</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== AGENTS ===== -->
+    <div class="section" id="sec-agents">
+      <div class="panel" style="margin-bottom:1.2rem">
+        <div class="panel-header">
+          <span class="panel-title">Deployed Agents</span>
+          <span class="panel-action">+ Deploy New</span>
+        </div>
+        <div class="panel-body">
+          <div class="agent-row header">
+            <span>#</span>
+            <span>Agent</span>
+            <span>Status</span>
+            <span>CPU</span>
+            <span>Memory</span>
+            <span>Actions</span>
+          </div>
+          <div class="agent-row">
+            <span class="agent-id">01</span>
+            <span class="agent-name">tactical-01</span>
+            <span class="agent-status"><span class="dot online"></span> Running</span>
+            <span class="agent-cpu">12.4%</span>
+            <span class="agent-mem">234 KB</span>
+            <span class="agent-actions">
+              <button class="btn-sm">Pause</button>
+              <button class="btn-sm danger">Kill</button>
+            </span>
+          </div>
+          <div class="agent-row">
+            <span class="agent-id">02</span>
+            <span class="agent-name">sniper-02</span>
+            <span class="agent-status"><span class="dot online"></span> Running</span>
+            <span class="agent-cpu">8.7%</span>
+            <span class="agent-mem">189 KB</span>
+            <span class="agent-actions">
+              <button class="btn-sm">Pause</button>
+              <button class="btn-sm danger">Kill</button>
+            </span>
+          </div>
+          <div class="agent-row">
+            <span class="agent-id">03</span>
+            <span class="agent-name">recon-03</span>
+            <span class="agent-status"><span class="dot idle"></span> Idle</span>
+            <span class="agent-cpu">2.1%</span>
+            <span class="agent-mem">312 KB</span>
+            <span class="agent-actions">
+              <button class="btn-sm">Resume</button>
+              <button class="btn-sm danger">Kill</button>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Agent Modules — tactical-01</span>
+          </div>
+          <div class="panel-body">
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">Cognitive</span>
+                <span class="resource-val" style="color:var(--nv-green)">Active — Rule-Based</span>
+              </div>
+            </div>
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">Planning</span>
+                <span class="resource-val" style="color:var(--nv-green)">Active — 4 Tasks</span>
+              </div>
+            </div>
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">Knowledge Graph</span>
+                <span class="resource-val" style="color:var(--nv-green)">128 Nodes / 342 Edges</span>
+              </div>
+            </div>
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">Multi-Agent</span>
+                <span class="resource-val" style="color:var(--amber)">2 Peers Connected</span>
+              </div>
+            </div>
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">Training</span>
+                <span class="resource-val" style="color:var(--text-dim)">Offline</span>
+              </div>
+            </div>
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">Solana</span>
+                <span class="resource-val" style="color:var(--nv-green)">Connected — Mainnet</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Agent Metrics</span>
+          </div>
+          <div class="panel-body">
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">Inference Latency</span>
+                <span class="resource-val">0.34 µs</span>
+              </div>
+              <div class="resource-bar"><div class="resource-fill" style="width:8%"></div></div>
+            </div>
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">Memory Usage</span>
+                <span class="resource-val">234 / 512 KB</span>
+              </div>
+              <div class="resource-bar"><div class="resource-fill warn" style="width:45%"></div></div>
+            </div>
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">Action Success Rate</span>
+                <span class="resource-val">98.7%</span>
+              </div>
+              <div class="resource-bar"><div class="resource-fill" style="width:98.7%"></div></div>
+            </div>
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">Steps Completed</span>
+                <span class="resource-val">14,847</span>
+              </div>
+              <div class="resource-bar"><div class="resource-fill" style="width:72%"></div></div>
+            </div>
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">Uptime</span>
+                <span class="resource-val">99.94%</span>
+              </div>
+              <div class="resource-bar"><div class="resource-fill" style="width:99.94%"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== STAKING ===== -->
+    <div class="section" id="sec-staking">
+      <div class="stats-row">
+        <div class="stat-card green">
+          <div class="stat-label">Your Stake</div>
+          <div class="stat-value">125K</div>
+          <div class="stat-change">Commander Tier</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-label">Rewards Earned</div>
+          <div class="stat-value">4,271</div>
+          <div class="stat-change">▲ +127 this epoch</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">Current APY</div>
+          <div class="stat-value">17%</div>
+          <div class="stat-change">Commander rate</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Total Staked</div>
+          <div class="stat-value">847.2K</div>
+          <div class="stat-change">42.3% of supply</div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:1.2rem">
+        <div class="panel-header">
+          <span class="panel-title">Staking Tiers</span>
+          <span class="panel-action">Upgrade Tier</span>
+        </div>
+        <div class="panel-body">
+          <div class="stake-tier">
+            <div class="tier-card">
+              <div class="tier-name">Scout</div>
+              <div class="tier-req">1,000 CLAW</div>
+              <div class="tier-apy">12%</div>
+              <div class="tier-slots">1 agent slot</div>
+            </div>
+            <div class="tier-card">
+              <div class="tier-name">Operative</div>
+              <div class="tier-req">10,000 CLAW</div>
+              <div class="tier-apy">14%</div>
+              <div class="tier-slots">5 agent slots</div>
+            </div>
+            <div class="tier-card active-tier">
+              <div class="tier-name">Commander</div>
+              <div class="tier-req">100,000 CLAW</div>
+              <div class="tier-apy">17%</div>
+              <div class="tier-slots">20 agent slots</div>
+            </div>
+            <div class="tier-card">
+              <div class="tier-name">Admiral</div>
+              <div class="tier-req">1,000,000 CLAW</div>
+              <div class="tier-apy">22%</div>
+              <div class="tier-slots">100 agent slots</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Module Access — Commander</span>
+        </div>
+        <div class="panel-body">
+          <div class="resource-item">
+            <div class="resource-header">
+              <span class="resource-name">Cognitive + Planning</span>
+              <span class="resource-val" style="color:var(--nv-green)">✓ Unlocked</span>
+            </div>
+          </div>
+          <div class="resource-item">
+            <div class="resource-header">
+              <span class="resource-name">Multi-Agent + Training</span>
+              <span class="resource-val" style="color:var(--nv-green)">✓ Unlocked</span>
+            </div>
+          </div>
+          <div class="resource-item">
+            <div class="resource-header">
+              <span class="resource-name">DeFi + Solana</span>
+              <span class="resource-val" style="color:var(--nv-green)">✓ Unlocked (50% fee discount)</span>
+            </div>
+          </div>
+          <div class="resource-item">
+            <div class="resource-header">
+              <span class="resource-name">Governance Proposals</span>
+              <span class="resource-val" style="color:var(--red-alert)">✗ Admiral Only</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== GOVERNANCE ===== -->
+    <div class="section" id="sec-governance">
+      <div class="panel" style="margin-bottom:1.2rem">
+        <div class="panel-header">
+          <span class="panel-title">Active Proposals</span>
+          <span class="panel-action">+ New Proposal</span>
+        </div>
+        <div class="panel-body">
+          <div class="proposal-item">
+            <div class="proposal-header">
+              <span class="proposal-id">CLS-008</span>
+              <span class="proposal-status active">Active — 2d left</span>
+            </div>
+            <div class="proposal-title">Increase max agent slots for Operative tier from 5 → 8</div>
+            <div class="proposal-votes">
+              <span>For: 412K CLAW (67%)</span>
+              <span>Against: 198K CLAW (33%)</span>
+            </div>
+            <div class="vote-bar">
+              <div class="vote-for" style="width:67%"></div>
+              <div class="vote-against" style="width:33%"></div>
+            </div>
+          </div>
+          <div class="proposal-item">
+            <div class="proposal-header">
+              <span class="proposal-id">CLS-009</span>
+              <span class="proposal-status active">Active — 5d left</span>
+            </div>
+            <div class="proposal-title">Add Raydium concentrated liquidity module to framework</div>
+            <div class="proposal-votes">
+              <span>For: 287K CLAW (82%)</span>
+              <span>Against: 63K CLAW (18%)</span>
+            </div>
+            <div class="vote-bar">
+              <div class="vote-for" style="width:82%"></div>
+              <div class="vote-against" style="width:18%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Past Proposals</span>
+        </div>
+        <div class="panel-body">
+          <div class="proposal-item">
+            <div class="proposal-header">
+              <span class="proposal-id">CLS-007</span>
+              <span class="proposal-status passed">Passed</span>
+            </div>
+            <div class="proposal-title">Reduce early unstake penalty from 15% to 10%</div>
+            <div class="proposal-votes"><span>For: 91% · Against: 9% · Quorum: 14.2%</span></div>
+          </div>
+          <div class="proposal-item">
+            <div class="proposal-header">
+              <span class="proposal-id">CLS-006</span>
+              <span class="proposal-status rejected">Rejected</span>
+            </div>
+            <div class="proposal-title">Increase burn rate from 10% to 20% of revenue</div>
+            <div class="proposal-votes"><span>For: 38% · Against: 62% · Quorum: 11.7%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== WALLET ===== -->
+    <div class="section" id="sec-wallet">
+      <div class="panel" style="margin-bottom:1.2rem">
+        <div class="panel-header">
+          <span class="panel-title">Wallet Overview</span>
+          <span class="panel-action">Disconnect</span>
+        </div>
+        <div class="panel-body">
+          <div class="wallet-info">
+            <div>
+              <div class="wallet-field">
+                <div class="wallet-label">Address</div>
+                <div class="wallet-value">7xKp...f3Qm</div>
+              </div>
+              <div class="wallet-field">
+                <div class="wallet-label">Network</div>
+                <div class="wallet-value">Solana Mainnet-Beta</div>
+              </div>
+            </div>
+            <div>
+              <div class="wallet-field">
+                <div class="wallet-label">SOL Balance</div>
+                <div class="wallet-value big">4.127 SOL</div>
+              </div>
+              <div class="wallet-field">
+                <div class="wallet-label">Est. Value</div>
+                <div class="wallet-value" style="color:var(--amber)">$612.40</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Token Holdings</span>
+        </div>
+        <div class="panel-body">
+          <div class="token-row header">
+            <span>Token</span>
+            <span style="text-align:right">Amount</span>
+            <span style="text-align:right">Value</span>
+          </div>
+          <div class="token-row">
+            <span class="token-name">$CLAW</span>
+            <span class="token-amount">125,000</span>
+            <span class="token-usd">$3,750.00</span>
+          </div>
+          <div class="token-row">
+            <span class="token-name">SOL</span>
+            <span class="token-amount">4.127</span>
+            <span class="token-usd">$612.40</span>
+          </div>
+          <div class="token-row">
+            <span class="token-name">BONK</span>
+            <span class="token-amount">14,600,000</span>
+            <span class="token-usd">$284.70</span>
+          </div>
+          <div class="token-row">
+            <span class="token-name">USDC</span>
+            <span class="token-amount">847.50</span>
+            <span class="token-usd">$847.50</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== REVENUE ===== -->
+    <div class="section" id="sec-revenue">
+      <div class="stats-row">
+        <div class="stat-card green">
+          <div class="stat-label">Epoch Revenue</div>
+          <div class="stat-value">2,847</div>
+          <div class="stat-change">CLAW earned</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-label">To Stakers (70%)</div>
+          <div class="stat-value">1,993</div>
+          <div class="stat-change">Distributed</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">To Treasury (20%)</div>
+          <div class="stat-value">569</div>
+          <div class="stat-change">Accumulated</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">Burned (10%)</div>
+          <div class="stat-value">285</div>
+          <div class="stat-change">Permanently removed</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Revenue Sources</span>
+        </div>
+        <div class="panel-body">
+          <div class="resource-item">
+            <div class="resource-header">
+              <span class="resource-name">Agent Fees</span>
+              <span class="resource-val">1,240 CLAW (43.5%)</span>
+            </div>
+            <div class="resource-bar"><div class="resource-fill" style="width:43.5%"></div></div>
+          </div>
+          <div class="resource-item">
+            <div class="resource-header">
+              <span class="resource-name">Transaction Fees</span>
+              <span class="resource-val">892 CLAW (31.3%)</span>
+            </div>
+            <div class="resource-bar"><div class="resource-fill" style="width:31.3%"></div></div>
+          </div>
+          <div class="resource-item">
+            <div class="resource-header">
+              <span class="resource-name">Swap Fees</span>
+              <span class="resource-val">487 CLAW (17.1%)</span>
+            </div>
+            <div class="resource-bar"><div class="resource-fill warn" style="width:17.1%"></div></div>
+          </div>
+          <div class="resource-item">
+            <div class="resource-header">
+              <span class="resource-name">Inference Fees</span>
+              <span class="resource-val">228 CLAW (8.0%)</span>
+            </div>
+            <div class="resource-bar"><div class="resource-fill warn" style="width:8%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== RESOURCES ===== -->
+    <div class="section" id="sec-resources">
+      <div class="stats-row">
+        <div class="stat-card green">
+          <div class="stat-label">System Health</div>
+          <div class="stat-value">OK</div>
+          <div class="stat-change">All systems nominal</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Total CPU</div>
+          <div class="stat-value">23.2%</div>
+          <div class="stat-change">3 agents running</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-label">Total Memory</div>
+          <div class="stat-value">735 KB</div>
+          <div class="stat-change">of 1.5 MB allocated</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Uptime</div>
+          <div class="stat-value">99.94%</div>
+          <div class="stat-change">47h 22m</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Per-Agent Resources</span>
+          </div>
+          <div class="panel-body">
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">tactical-01 — CPU</span>
+                <span class="resource-val">12.4%</span>
+              </div>
+              <div class="resource-bar"><div class="resource-fill" style="width:12.4%"></div></div>
+            </div>
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">tactical-01 — MEM</span>
+                <span class="resource-val">234 KB</span>
+              </div>
+              <div class="resource-bar"><div class="resource-fill warn" style="width:45%"></div></div>
+            </div>
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">sniper-02 — CPU</span>
+                <span class="resource-val">8.7%</span>
+              </div>
+              <div class="resource-bar"><div class="resource-fill" style="width:8.7%"></div></div>
+            </div>
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">sniper-02 — MEM</span>
+                <span class="resource-val">189 KB</span>
+              </div>
+              <div class="resource-bar"><div class="resource-fill" style="width:37%"></div></div>
+            </div>
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">recon-03 — CPU</span>
+                <span class="resource-val">2.1%</span>
+              </div>
+              <div class="resource-bar"><div class="resource-fill" style="width:2.1%"></div></div>
+            </div>
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">recon-03 — MEM</span>
+                <span class="resource-val">312 KB</span>
+              </div>
+              <div class="resource-bar"><div class="resource-fill warn" style="width:61%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Health Thresholds</span>
+          </div>
+          <div class="panel-body">
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">CPU Warning</span>
+                <span class="resource-val" style="color:var(--amber)">70%</span>
+              </div>
+            </div>
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">CPU Critical</span>
+                <span class="resource-val" style="color:var(--red-alert)">90%</span>
+              </div>
+            </div>
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">Memory Warning</span>
+                <span class="resource-val" style="color:var(--amber)">80%</span>
+              </div>
+            </div>
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">Memory Critical</span>
+                <span class="resource-val" style="color:var(--red-alert)">95%</span>
+              </div>
+            </div>
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">Auto-Recovery</span>
+                <span class="resource-val" style="color:var(--nv-green)">Enabled</span>
+              </div>
+            </div>
+            <div class="resource-item">
+              <div class="resource-header">
+                <span class="resource-name">Recovery Actions</span>
+                <span class="resource-val">Prune → Restart → Kill</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== LOGS ===== -->
+    <div class="section" id="sec-logs">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">System Logs</span>
+          <span class="panel-action">Clear</span>
+        </div>
+        <div class="panel-body" style="padding:0">
+          <div class="terminal" id="log-terminal">
+            <div class="term-line"><span class="t">14:22:08</span><span class="info">[AGENT] tactical-01 step #14847 completed in 0.34µs</span></div>
+            <div class="term-line"><span class="t">14:22:07</span><span class="info">[SOLANA] swap executed: 0.5 SOL → 14,600,000 BONK via Raydium</span></div>
+            <div class="term-line"><span class="t">14:22:05</span><span class="sys">[RPC] tx confirmed: 5Kp9...2mFq (slot 247891034)</span></div>
+            <div class="term-line"><span class="t">14:21:58</span><span class="info">[COGNITIVE] tactical-01 inference: rule_based model, 4 inputs → decision[2]</span></div>
+            <div class="term-line"><span class="t">14:21:52</span><span class="warn">[RESOURCE] recon-03 memory 78% — triggering auto-prune</span></div>
+            <div class="term-line"><span class="t">14:21:52</span><span class="info">[MEMORY] recon-03 pruned 47 expired entries, freed 18KB</span></div>
+            <div class="term-line"><span class="t">14:21:44</span><span class="info">[PERCEPTION] recon-03 detected price anomaly: SOL/USDC deviation +3.2%</span></div>
+            <div class="term-line"><span class="t">14:21:30</span><span class="sys">[COMM] broadcast: peer_heartbeat from sniper-02 (latency 4ms)</span></div>
+            <div class="term-line"><span class="t">14:21:15</span><span class="info">[TOKEN] epoch distribution: 2847 CLAW → 1993 stakers / 569 treasury / 285 burned</span></div>
+            <div class="term-line"><span class="t">14:21:10</span><span class="info">[SECURITY] auth token validated for tactical-01 (role: commander)</span></div>
+            <div class="term-line"><span class="t">14:20:58</span><span class="info">[KNOWLEDGE] tactical-01 added node: BONK_price_feed (embedding dim=32)</span></div>
+            <div class="term-line"><span class="t">14:20:45</span><span class="info">[PLANNING] tactical-01 plan generated: 3 tasks, DAG depth 2</span></div>
+            <div class="term-line"><span class="t">14:20:30</span><span class="sys">[GOVERNANCE] proposal CLS-007 passed — quorum 14.2% (min 10%)</span></div>
+            <div class="term-line"><span class="t">14:20:22</span><span class="info">[MULTIAGENT] collaboration request: sniper-02 → tactical-01 (type: task_share)</span></div>
+            <div class="term-line"><span class="t">14:20:10</span><span class="info">[TRAINING] sniper-02 replay buffer: 512/512 experiences, ε=0.142</span></div>
+            <div class="term-line"><span class="t">14:20:01</span><span class="sys">[SYSTEM] ClawLobstars v0.2.0 — all 13 modules operational</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toUTCString().split(' ')[4] + ' UTC';
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Navigation
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// Simulate live stat updates
+setInterval(() => {
+  const el = document.getElementById('stat-infer');
+  if (el) {
+    const base = 9.6;
+    const jitter = (Math.random() - 0.5) * 0.4;
+    el.textContent = (base + jitter).toFixed(1) + 'M';
+  }
+}, 2000);
+
+// Simulate log additions
+const logMessages = [
+  { cls: 'info', msg: '[AGENT] tactical-01 step completed in 0.31µs' },
+  { cls: 'info', msg: '[COGNITIVE] sniper-02 neural_net inference: confidence 0.847' },
+  { cls: 'sys', msg: '[COMM] message routed: tactical-01 → recon-03 (type: alert)' },
+  { cls: 'info', msg: '[MEMORY] tactical-01 store: key=price_sol val=148.32 ttl=60s' },
+  { cls: 'warn', msg: '[RESOURCE] sniper-02 CPU spike: 34.2% (threshold: 70%)' },
+  { cls: 'info', msg: '[KNOWLEDGE] similarity search: "sol_price" → 3 results (0.94 best)' },
+  { cls: 'sys', msg: '[SOLANA] watcher triggered: SOL balance changed +0.012' },
+  { cls: 'info', msg: '[PLANNING] recon-03 task completed: scan_orderbook (1.2ms)' },
+];
+
+setInterval(() => {
+  const terminal = document.getElementById('log-terminal');
+  if (!terminal) return;
+  const now = new Date();
+  const time = now.toTimeString().split(' ')[0];
+  const msg = logMessages[Math.floor(Math.random() * logMessages.length)];
+  const line = document.createElement('div');
+  line.className = 'term-line';
+  line.innerHTML = `<span class="t">${time}</span><span class="${msg.cls}">${msg.msg}</span>`;
+  terminal.insertBefore(line, terminal.firstChild);
+  if (terminal.children.length > 50) terminal.removeChild(terminal.lastChild);
+}, 3000);
+</script>
+
+</body>
+</html>
