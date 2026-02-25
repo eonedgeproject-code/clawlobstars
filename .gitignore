@@ -1,0 +1,12 @@
+build/
+*.o
+*.a
+*.d
+*.elf
+*.bin
+*.hex
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
