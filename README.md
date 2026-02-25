@@ -147,13 +147,11 @@ clawlobstars/
 │   ├── multiagent/           # Multi-agent operations
 │   ├── security/             # Security layer
 │   ├── training/             # Training pipeline
-│   ├── resource/             # Resource management
-│   ├── solana/               # Solana integration ⛓️
-│   └── token/                # $CLAW token engine 🪙
+│   └── resource/             # Resource management
 ├── examples/
 │   ├── main.c                # Full 13-module demo
-│   ├── solana_agent.c        # Solana wallet/DeFi demo
-│   └── token_demo.c          # $CLAW tokenomics demo
+│   ├── solana_agent.c        # Solana agent demo [feature branch]
+│   └── token_demo.c          # Token demo [feature branch]
 ├── tests/
 │   └── test_all.c            # 91 unit tests
 ├── bench/
@@ -176,8 +174,6 @@ make lib                # Static library only
 make example            # Example binary only
 make test               # Run 91 unit tests
 make bench              # Run benchmarks
-make solana             # Build Solana agent demo
-make token              # Build token demo
 make build OPT=O3       # Aggressive optimization
 make build DEBUG=1      # Debug symbols + CLS_DEBUG
 make arm                # Cross-compile ARM Cortex-M4
@@ -193,45 +189,6 @@ make clean              # Remove build artifacts
 |--------|-------------|
 | `main` | Stable — 13 core modules, docs, landing page |
 | `dev` | Testing — 91 unit tests, benchmarks, changelog |
-| `feature/solana-agent` | Solana integration — wallet, RPC, DeFi, watchers |
-| `feature/token-integration` | $CLAW token engine — staking, governance, licensing |
-
----
-
-## Solana Integration
-
-Available on `feature/solana-agent` branch:
-
-- Ed25519 keypair generation & Base58 encoding
-- Wallet management with balance tracking
-- Transaction builder (multi-instruction support)
-- Pre-built instructions: SOL transfer, SPL token, create ATA, memo
-- DeFi operations: price feeds, swap quotes, AMM execution
-- On-chain watchers with callbacks (balance, token, price)
-- ATA derivation (PDA simulation)
-
-```bash
-git checkout feature/solana-agent
-make solana
-./build/bin/cls_solana_agent
-```
-
-## $CLAW Token
-
-Available on `feature/token-integration` branch:
-
-- **Supply:** 1,000,000,000 CLAW (9 decimals)
-- **Staking:** 4 tiers — Scout (12% APY) → Admiral (22% APY)
-- **Governance:** Stake-weighted voting, 10% quorum
-- **Revenue:** 70% stakers / 20% treasury / 10% burned
-- **Agent Licensing:** Tier-gated module access
-- **Vesting:** Linear, cliff, stepped schedules
-
-```bash
-git checkout feature/token-integration
-make token
-./build/bin/cls_token_demo
-```
 
 ---
 
@@ -258,7 +215,6 @@ make token
 - **Autonomous Robotics** — Adaptive task execution on embedded MCUs
 - **IoT Networks** — Anomaly detection on microcontrollers
 - **Trading Systems** — Microsecond-latency market analysis
-- **DeFi Agents** — Autonomous on-chain operations via Solana
 - **Medical Devices** — Deterministic AI for adaptive implants
 
 ---
