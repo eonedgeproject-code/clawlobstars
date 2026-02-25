@@ -34,7 +34,9 @@ SRCS     := $(SRC_DIR)/core/cls_agent.c \
             $(SRC_DIR)/multiagent/cls_multiagent.c \
             $(SRC_DIR)/security/cls_security.c \
             $(SRC_DIR)/training/cls_training.c \
-            $(SRC_DIR)/resource/cls_resource.c
+            $(SRC_DIR)/resource/cls_resource.c \
+            $(SRC_DIR)/solana/cls_solana.c \
+            $(SRC_DIR)/token/cls_token.c
 
 OBJS     := $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 DEPS     := $(OBJS:.o=.d)
@@ -51,7 +53,7 @@ EXAMPLE_BIN := $(BIN_DIR)/cls_example
 # Targets
 # ============================================================
 
-.PHONY: all build clean lib example test help
+.PHONY: all build clean lib example test bench help
 
 all: build
 
@@ -82,6 +84,58 @@ $(EXAMPLE_BIN): $(EXAMPLE_SRC) $(STATIC_LIB)
 	@mkdir -p $(BIN_DIR)
 	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) -lclawlobstars $(LDFLAGS) -o $@
 
+# Token demo
+TOKEN_SRC := examples/token_demo.c
+TOKEN_BIN := $(BIN_DIR)/cls_token
+
+token: $(TOKEN_BIN)
+	@echo "[TOKEN] Running $CLAW token demo..."
+	@./$(TOKEN_BIN)
+
+$(TOKEN_BIN): $(TOKEN_SRC) $(STATIC_LIB)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) -lclawlobstars $(LDFLAGS) -o $@
+	@echo "[BIN] $(TOKEN_BIN)"
+
+# Solana agent example
+SOLANA_SRC := examples/solana_agent.c
+SOLANA_BIN := $(BIN_DIR)/cls_solana
+
+solana: $(SOLANA_BIN)
+	@echo "[SOLANA] Running Solana agent..."
+	@./$(SOLANA_BIN)
+
+$(SOLANA_BIN): $(SOLANA_SRC) $(STATIC_LIB)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) -lclawlobstars $(LDFLAGS) -o $@
+	@echo "[BIN] $(SOLANA_BIN)"
+
+# Test suite
+TEST_SRC := tests/test_all.c
+TEST_BIN := $(BIN_DIR)/cls_test
+
+test: $(TEST_BIN)
+	@echo "[TEST] Running test suite..."
+	@./$(TEST_BIN)
+
+$(TEST_BIN): $(TEST_SRC) $(STATIC_LIB)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) -lclawlobstars $(LDFLAGS) -o $@
+	@echo "[BIN] $(TEST_BIN)"
+
+# Benchmark
+BENCH_SRC := bench/benchmark.c
+BENCH_BIN := $(BIN_DIR)/cls_bench
+
+bench: $(BENCH_BIN)
+	@echo "[BENCH] Running benchmarks..."
+	@./$(BENCH_BIN)
+
+$(BENCH_BIN): $(BENCH_SRC) $(STATIC_LIB)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) -lclawlobstars $(LDFLAGS) -o $@
+	@echo "[BIN] $(BENCH_BIN)"
+
 clean:
 	rm -rf $(BUILD_DIR)
 	@echo "[CLEAN] Build artifacts removed"
@@ -94,6 +148,8 @@ help:
 	@echo "  make build       Build library + example"
 	@echo "  make lib         Build static library only"
 	@echo "  make example     Build example binary"
+	@echo "  make test        Build & run test suite"
+	@echo "  make bench       Build & run benchmarks"
 	@echo "  make clean       Remove build artifacts"
 	@echo "  make DEBUG=1     Build with debug symbols"
 	@echo "  make OPT=O3      Build with O3 optimization"
