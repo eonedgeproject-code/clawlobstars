@@ -5,7 +5,7 @@
  * and embedded systems.
  *
  * License: GPL-3.0
- * Version: 0.1.0
+ * Version: 0.4.0
  */
 
 #ifndef CLS_FRAMEWORK_H
@@ -23,9 +23,9 @@ extern "C" {
  * Version Info
  * ============================================================ */
 #define CLS_VERSION_MAJOR 0
-#define CLS_VERSION_MINOR 1
+#define CLS_VERSION_MINOR 4
 #define CLS_VERSION_PATCH 0
-#define CLS_VERSION_STRING "0.1.0"
+#define CLS_VERSION_STRING "0.4.0"
 
 /* ============================================================
  * Status Codes
@@ -119,6 +119,9 @@ typedef struct cls_comm_bus      cls_comm_bus_t;
 typedef struct cls_multiagent    cls_multiagent_t;
 typedef struct cls_security_ctx  cls_security_ctx_t;
 typedef struct cls_resource_mgr  cls_resource_mgr_t;
+typedef struct cls_telemetry     cls_telemetry_t;
+typedef struct cls_scheduler     cls_scheduler_t;
+typedef struct cls_network       cls_network_t;
 
 /* ============================================================
  * Callback Types
@@ -193,6 +196,13 @@ typedef struct {
 #include "cls_security.h"
 #include "cls_training.h"
 #include "cls_resource.h"
+#include "cls_telemetry.h"
+#include "cls_scheduler.h"
+#include "cls_network.h"
+#include "cls_logging.h"
+#include "cls_config.h"
+#include "cls_diagnostics.h"
+#include "cls_plugin.h"
 #include "cls_agent.h"
 
 #ifdef __cplusplus

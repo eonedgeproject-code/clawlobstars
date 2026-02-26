@@ -232,6 +232,12 @@ cls_status_t cls_training_train_from_replay(cls_training_t *train, uint32_t batc
 
         /* Compute TD target */
         float target = batch[i].reward;
+
+        /* Fix: clip reward to prevent NaN/inf propagation */
+        if (target != target) target = 0.0f;  /* NaN check */
+        if (target > 100.0f) target = 100.0f;
+        if (target < -100.0f) target = -100.0f;
+
         if (!batch[i].terminal && batch[i].next_state) {
             cls_input_t next_input = {
                 .features = batch[i].next_state,

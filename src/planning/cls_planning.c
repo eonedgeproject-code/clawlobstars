@@ -133,6 +133,19 @@ cls_status_t cls_plan_add_task(cls_plan_t *plan, const cls_task_t *task) {
     if (!plan || !task) return CLS_ERR_INVALID;
     if (plan->task_count >= plan->max_tasks) return CLS_ERR_OVERFLOW;
 
+    /* Fix: validate dependency IDs exist and prevent self-dependency */
+    for (uint32_t d = 0; d < task->dep_count; d++) {
+        if (task->depends_on[d] == task->task_id) return CLS_ERR_INVALID;
+        bool found = false;
+        for (uint32_t j = 0; j < plan->task_count; j++) {
+            if (plan->tasks[j].task_id == task->depends_on[d]) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) return CLS_ERR_NOT_FOUND;
+    }
+
     plan->tasks[plan->task_count] = *task;
     plan->task_count++;
     plan->total_cost += task->cost_estimate;

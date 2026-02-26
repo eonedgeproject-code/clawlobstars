@@ -96,6 +96,10 @@ cls_status_t cls_memory_store_ttl(cls_memory_ctx_t *ctx, const char *key,
     if (strlen(key) >= CLS_MEM_KEY_MAX)
         return CLS_ERR_OVERFLOW;
 
+    /* Prevent absurdly large allocations */
+    if (len > ctx->capacity / 2)
+        return CLS_ERR_OVERFLOW;
+
     cls_mem_table_t *table = cls_get_table(ctx);
     uint32_t hash = cls_hash(key);
     uint32_t idx = cls_bucket_idx(hash);
@@ -104,6 +108,7 @@ cls_status_t cls_memory_store_ttl(cls_memory_ctx_t *ctx, const char *key,
     cls_mem_entry_t *entry = table->buckets[idx];
     while (entry) {
         if (strcmp(entry->key, key) == 0) {
+            size_t old_len = entry->meta.data_len;
             void *new_data = realloc(entry->data, len);
             if (!new_data) return CLS_ERR_NOMEM;
 
@@ -113,6 +118,9 @@ cls_status_t cls_memory_store_ttl(cls_memory_ctx_t *ctx, const char *key,
             entry->meta.accessed_at = cls_time_us();
             entry->meta.access_count++;
             entry->meta.ttl_seconds = ttl_sec;
+
+            /* Fix: update used-size tracking on resize */
+            ctx->used = ctx->used - old_len + len;
             return CLS_OK;
         }
         entry = entry->next;

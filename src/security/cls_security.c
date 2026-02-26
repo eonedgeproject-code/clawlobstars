@@ -282,6 +282,9 @@ cls_status_t cls_security_audit(cls_security_ctx_t *sec, cls_audit_type_t type,
     uint32_t idx = sec->audit_head;
     cls_audit_entry_t *entry = &sec->audit_log[idx];
 
+    /* Fix: zero entry first to prevent stale data from previous ring cycle */
+    memset(entry, 0, sizeof(cls_audit_entry_t));
+
     entry->entry_id = sec->next_audit_id++;
     entry->type = type;
     entry->agent_id = agent_id;
